@@ -1,56 +1,77 @@
-//I'm writing a weightlifting calculator So for example.. say I
-//want 50kg total. I put in 50kgs and the bars weight ( my bar weighs 17.5kg) so it takes away the
-//17.5kgs for the bar.. left with 32.5kgs. Then that needs to be spread evenly on each side so it
-//   halves it 16.25kgs. So it gives you the number 16.25kgs and maybe even go further in saying
-//   exactly what plates. So in the end it would be like "16.25kgs each side.. 10kg plate, 5kg
-//   plate, 1.25kg plate"
-
-
 use std::io;
-//A function that gets user input and returns a float
-fn get_input() -> f32 {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).expect("Failed to read line");
-    let input: f32 = input.trim().parse().expect("Please type a number!");
-    return input;
+
+struct Plate {
+    weight: f64,
+    name: &'static str,
 }
 
-//A function that will calculate the amount and type of plates needed on both sides to match the
-//target weight
-fn calculate(target_weight: f32) {
-    let bar_weight = 17.5;
-    let mut target_weight = target_weight - bar_weight;
-    let mut plates = [25.0, 20.0, 15.0, 10.0, 5.0, 2.5, 1.25];
-    let mut plate_count = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-    let mut plate_total = 0.0;
+impl Plate {
+    fn new(weight: f64, name: &'static str) -> Plate {
+        Plate { weight, name }
+    }
+}
 
-    //This loop will calculate the amount of plates needed on each side
-    for i in 0..plates.len() {
-        while target_weight > 0.0 {
-            if target_weight >= plates[i] {
-                plate_count[i] += 1.0;
-                target_weight -= plates[i];
-            } else {
-                break;
+struct WeightCalculator {
+    total_weight: f64,
+    bar_weight: f64,
+    plates: Vec<Plate>,
+}
+
+impl WeightCalculator {
+    fn new(total_weight: f64, bar_weight: f64) -> WeightCalculator {
+        let plates = vec![
+            Plate::new(20.0, "20kg"),
+            Plate::new(15.0, "15kg"),
+            Plate::new(10.0, "10kg"),
+            Plate::new(5.0, "5kg"),
+            Plate::new(2.5, "2.5kg"),
+            Plate::new(1.25, "1.25kg"),
+        ];
+        WeightCalculator {
+            total_weight,
+            bar_weight,
+            plates,
+        }
+    }
+
+    fn calculate_weight_per_side(&self) -> f64 {
+        (self.total_weight - self.bar_weight) / 2.0
+    }
+
+    fn calculate_plates_needed(&self, weight_per_side: f64) -> Vec<&str> {
+        let mut plates_needed: Vec<&str> = Vec::new();
+        let mut remaining_weight = weight_per_side;
+        for plate in &self.plates {
+            while remaining_weight >= plate.weight {
+                plates_needed.push(plate.name);
+                remaining_weight -= plate.weight;
             }
         }
-        plate_total += plate_count[i];
+        plates_needed
     }
-
-    //This loop will print out the amount of plates needed on each side
-    for i in 0..plates.len() {
-        if plate_count[i] > 0.0 {
-            println!("{}kg plate: {}", plates[i], plate_count[i]);
-        }
-    }
-
-    //This will print out the total amount of plates needed on each side
-    println!("Total amount of plates needed: {}", plate_total);
 }
 
 fn main() {
-    println!("Please enter the target weight: ");
-    let target_weight = get_input();
-    println!("The target weight is: {}kg", target_weight);
-    calculate(target_weight);
+    // Get the total weight from the user
+    println!("Enter the total weight (in kg):");
+    let mut total_weight = String::new();
+    io::stdin().read_line(&mut total_weight).unwrap();
+    let total_weight: f64 = total_weight.trim().parse().unwrap();
+
+    // Get the weight of the bar from the user
+    println!("Enter the weight of the bar (in kg):");
+    let mut bar_weight = String::new();
+    io::stdin().read_line(&mut bar_weight).unwrap();
+    let bar_weight: f64 = bar_weight.trim().parse().unwrap();
+
+    // Calculate the weight for each side of the bar
+    let calculator = WeightCalculator::new(total_weight, bar_weight);
+    let weight_per_side = calculator.calculate_weight_per_side();
+
+    // Determine the plates needed for each side
+    let plates_needed = calculator.calculate_plates_needed(weight_per_side);
+
+    // Print the result
+    println!("Weight per side: {:.2}kg", weight_per_side);
+    println!("Plates needed per side: {:?}", plates_needed);
 }
