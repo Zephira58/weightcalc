@@ -74,4 +74,6 @@ fn main() {
     // Print the result
     println!("Weight per side: {:.2}kg", weight_per_side);
     println!("Plates needed per side: {:?}", plates_needed);
+    let mut x = String::new();
+    io::stdin().read_line(&mut x).unwrap();
 }
